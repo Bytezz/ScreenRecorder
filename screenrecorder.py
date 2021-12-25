@@ -19,7 +19,7 @@ def notify(title="", content="", icon="record"):
 
 def main():
 	if not os.path.isfile(isRecording):
-		saveName = savingPath+str(int(time.time()))+".mp4"
+		saveName = savingPath+str(int(time.time()))+".mpg"
 
 		#recording = sb.Popen("yes", shell=False, stdout=sb.PIPE)
 		recording = sb.Popen( (cmd+saveName).split(" ") , shell=False, stdout=sb.PIPE, stderr=sb.PIPE)
@@ -36,10 +36,18 @@ def main():
 		with open(isRecording,"r") as f:
 			saveName,pid=f.read().split("\n")
 		os.remove(isRecording)
-
 		os.system("kill -2 "+pid)
 		
-		notify("Stop recording","Saved at "+saveName)
+		notify("Stop recording","Saved at "+saveName, "stop")
+
+		converted = ".".join(saveName.split(".")[:-1])+".mp4"
+		notify("Conversion...","Conversion to mp4","gtk-convert")
+		ec = os.system( "ffmpeg -i {} {}".format( saveName, converted ) )
+		if ec==0:
+			os.remove(saveName)
+			notify("Converted.","Converted to "+converted, "ok")
+		else:
+			notify("Conversion failed.","Keeping "+saveName, "error")
 	
 	return 0
 
